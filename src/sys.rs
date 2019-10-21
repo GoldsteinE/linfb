@@ -1,3 +1,5 @@
+//! Low-level utilities to deal with framebuffer file descriptor
+
 use nix::ioctl_read_bad;
 
 /// System structure representing one RGB channel parameters
@@ -64,4 +66,7 @@ impl fb_var_screeninfo {
     }
 }
 
-ioctl_read_bad!(get_var_screeninfo, 0x4600, fb_var_screeninfo);
+ioctl_read_bad! {
+    /// Make a `get_var_screeninfo` ioctl call and return [`fb_var_screeninfo`] struct
+    get_var_screeninfo, 0x4600, fb_var_screeninfo
+}
