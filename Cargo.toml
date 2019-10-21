@@ -1,6 +1,6 @@
 [package]
 name = "linfb"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Maximilian Siling <mouse-art@ya.ru>"]
 edition = "2018"
 
