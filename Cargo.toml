@@ -1,6 +1,6 @@
 [package]
 name = "linfb"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Maximilian Siling <mouse-art@ya.ru>"]
 edition = "2018"
 
@@ -9,6 +9,18 @@ keywords = ["Linux", "framebuffer"]
 license = "MIT"
 homepage = "https://github.com/GoldsteinE/linfb"
 
+[features]
+default = ["text", "images"]
+text = ["rusttype", "font-loader", "lazy_static", "xi-unicode"]
+images = ["image"]
+
 [dependencies]
 nix = "~0.15.0"
 memmap = "~0.7.0"
+derive_builder = "~0.7.2"
+downcast-rs = "~1.0.4"
+rusttype = { version = "~0.8.0", optional = true}
+font-loader = { version = "~0.8.0", optional = true }
+lazy_static = { version = "~1.4.0", optional = true }
+xi-unicode = { version = "~0.2", optional = true }
+image = { version = "~0.22.2", optional = true }
