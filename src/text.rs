@@ -1,12 +1,11 @@
 #[cfg(feature = "text")]
-
 use derive_builder::Builder;
-use rusttype::{Font, Scale, PositionedGlyph, point};
 use font_loader::system_fonts::FontPropertyBuilder;
+use rusttype::{point, Font, PositionedGlyph, Scale};
 use xi_unicode::LineBreakIterator;
 
-use crate::shape::{Color, Shape};
 use crate::error::{Error::*, Result};
+use crate::shape::{Color, Shape};
 
 /// Builder for [`Font`]. All methods map to corresponding [`FontPropertyBuilder`] methods.
 #[derive(Default)]
@@ -15,7 +14,7 @@ pub struct FontBuilder {
     oblique: bool,
     bold: bool,
     monospace: bool,
-    family: String
+    family: String,
 }
 
 impl FontBuilder {
@@ -74,7 +73,7 @@ impl FontBuilder {
 pub enum Alignment {
     Left,
     Center,
-    Right
+    Right,
 }
 
 impl Default for Alignment {
@@ -114,15 +113,24 @@ impl Caption {
         let offset = point(0f32, self.font.v_metrics(scale).ascent);
         let text: String = text
             .chars()
-            .filter(|c| self.font.glyph(*c).standalone().get_data().and_then(|g| Some(g.id != 0)).unwrap_or(false))
+            .filter(|c| {
+                self.font
+                    .glyph(*c)
+                    .standalone()
+                    .get_data()
+                    .and_then(|g| Some(g.id != 0))
+                    .unwrap_or(false)
+            })
             .collect();
         self.font.layout(&text, scale, offset).collect()
     }
 
     fn width(&self, glyphs: &Vec<PositionedGlyph<'_>>) -> f32 {
         match glyphs.iter().rev().next() {
-            Some(glyph) => glyph.position().x as f32 + glyph.unpositioned().h_metrics().advance_width,
-            None => 0f32
+            Some(glyph) => {
+                glyph.position().x as f32 + glyph.unpositioned().h_metrics().advance_width
+            }
+            None => 0f32,
         }
     }
 
@@ -155,7 +163,13 @@ impl Caption {
 
                         // Stripping space from line end
                         // Can .unwrap() here because prev_break is line offset
-                        if self.text.chars().nth(prev_break - 1).unwrap().is_whitespace() {
+                        if self
+                            .text
+                            .chars()
+                            .nth(prev_break - 1)
+                            .unwrap()
+                            .is_whitespace()
+                        {
                             prev_break -= 1;
                         }
                         where_to_break.push(prev_break);
@@ -201,42 +215,43 @@ impl Caption {
 
     fn align_line(&self, line: Vec<Vec<Option<Color>>>, width: usize) -> Vec<Vec<Option<Color>>> {
         match self.alignment {
-            Alignment::Left => {
-                line
-                    .into_iter()
-                    .map(|mut row| { row.resize(width, None); row })
-                    .collect()
-            },
-            Alignment::Right => {
-                line
-                    .iter()
-                    .map(|row| {
-                         let mut new_row = vec![None; width];
-                         let row_len = usize::min(width, row.len());
-                         &new_row[width - row_len..].copy_from_slice(&row[..row_len]);
-                         new_row
-                    })
-                    .collect()
-            },
-            Alignment::Center => {
-                line
-                    .iter()
-                    .map(|row| {
-                        let mut new_row = vec![None; width];
-                        let row_len = usize::min(width, row.len());
-                        let offset = (width - row_len) / 2;
-                        &new_row[offset..row_len + offset].copy_from_slice(&row[..row_len]);
-                        new_row
-                    })
-                    .collect()
-            },
+            Alignment::Left => line
+                .into_iter()
+                .map(|mut row| {
+                    row.resize(width, None);
+                    row
+                })
+                .collect(),
+            Alignment::Right => line
+                .iter()
+                .map(|row| {
+                    let mut new_row = vec![None; width];
+                    let row_len = usize::min(width, row.len());
+                    &new_row[width - row_len..].copy_from_slice(&row[..row_len]);
+                    new_row
+                })
+                .collect(),
+            Alignment::Center => line
+                .iter()
+                .map(|row| {
+                    let mut new_row = vec![None; width];
+                    let row_len = usize::min(width, row.len());
+                    let offset = (width - row_len) / 2;
+                    &new_row[offset..row_len + offset].copy_from_slice(&row[..row_len]);
+                    new_row
+                })
+                .collect(),
         }
     }
 }
 
 impl Shape for Caption {
     fn render(&self) -> Vec<Vec<Option<Color>>> {
-        let line_gap = self.font.v_metrics(Scale::uniform(self.size as f32)).line_gap.round() as u32;
+        let line_gap = self
+            .font
+            .v_metrics(Scale::uniform(self.size as f32))
+            .line_gap
+            .round() as u32;
 
         let mut lines = vec![];
         let mut max_real_width = None;
@@ -254,7 +269,6 @@ impl Shape for Caption {
             }
             lines.push(rendered_line)
         }
-
 
         let width = if let Some(max_width) = self.max_width {
             max_width

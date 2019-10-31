@@ -70,7 +70,7 @@ mod error;
 pub use error::{Error, Result};
 
 pub mod shape;
-use shape::{Shape, Color};
+use shape::{Color, Shape};
 
 mod compositor;
 pub use compositor::{Compositor, CompositorBuilder};
@@ -136,10 +136,14 @@ impl Framebuffer {
         let pixel_pos = ((y * self.screen_info.xres + x) * 4) as usize;
 
         let mut pixel = 0u32;
-        pixel |= (color.red as u32) >> (8 - self.screen_info.red.length) << self.screen_info.red.offset;
-        pixel |= (color.green as u32) >> (8 - self.screen_info.green.length) << self.screen_info.green.offset;
-        pixel |= (color.blue as u32) >> (8 - self.screen_info.blue.length) << self.screen_info.blue.offset;
-        pixel |= (color.alpha as u32) >> (8 - self.screen_info.transp.length) << self.screen_info.transp.offset;
+        pixel |=
+            (color.red as u32) >> (8 - self.screen_info.red.length) << self.screen_info.red.offset;
+        pixel |= (color.green as u32) >> (8 - self.screen_info.green.length)
+            << self.screen_info.green.offset;
+        pixel |= (color.blue as u32) >> (8 - self.screen_info.blue.length)
+            << self.screen_info.blue.offset;
+        pixel |= (color.alpha as u32) >> (8 - self.screen_info.transp.length)
+            << self.screen_info.transp.offset;
         self.screen[pixel_pos..pixel_pos + 4].copy_from_slice(&pixel.to_ne_bytes());
     }
 
@@ -156,6 +160,10 @@ impl Framebuffer {
 
     /// Create [Compositor] object with size of a screen and given background color
     pub fn compositor(&self, background: Color) -> Compositor {
-        Compositor::new(self.screen_info.xres as usize, self.screen_info.yres as usize, background)
+        Compositor::new(
+            self.screen_info.xres as usize,
+            self.screen_info.yres as usize,
+            background,
+        )
     }
 }

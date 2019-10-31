@@ -1,8 +1,8 @@
-use std::fmt;
-#[cfg(feature = "text")]
-use rusttype;
 #[cfg(feature = "images")]
 use image;
+#[cfg(feature = "text")]
+use rusttype;
+use std::fmt;
 
 #[derive(Debug)]
 pub enum Error {
@@ -20,19 +20,17 @@ impl fmt::Display for Error {
         use Error::*;
 
         match self {
-            InvalidColorString(color, description) =>
-                write!(f, "invalid color string: {}; {}", color, description),
+            InvalidColorString(color, description) => {
+                write!(f, "invalid color string: {}; {}", color, description)
+            }
             #[cfg(feature = "text")]
-            FontNotFound =>
-                write!(f, "font with given constraints is not found"),
+            FontNotFound => write!(f, "font with given constraints is not found"),
 
             #[cfg(feature = "text")]
-            BadFont(err) =>
-                write!(f, "bad font loaded: {}", err),
+            BadFont(err) => write!(f, "bad font loaded: {}", err),
 
             #[cfg(feature = "images")]
-            BadImage(err) =>
-                write!(f, "bad image: {}", err),
+            BadImage(err) => write!(f, "bad image: {}", err),
         }
     }
 }

@@ -1,19 +1,21 @@
 //! Various drawing primitives
 
-use std::ops::{Mul, MulAssign};
 use std::convert::TryFrom;
+use std::ops::{Mul, MulAssign};
 
 use derive_builder::Builder;
-use downcast_rs::{Downcast, impl_downcast};
+use downcast_rs::{impl_downcast, Downcast};
 
-use crate::{Error::{self, *}, Result};
+use crate::{
+    Error::{self, *},
+    Result,
+};
 
 #[cfg(feature = "text")]
-pub use crate::text::{Caption, CaptionBuilder, FontBuilder, Alignment};
+pub use crate::text::{Alignment, Caption, CaptionBuilder, FontBuilder};
 
 #[cfg(feature = "images")]
 pub use crate::image::Image;
-
 
 /// RGBA color used in many places in the library. Alpha channel is `[0-255]`, not `[0-1]`.
 ///
@@ -31,7 +33,7 @@ pub use crate::image::Image;
 /// # assert_eq!(c2, c3);
 /// # assert_eq!(c3, c4);
 /// ```
-/// 
+///
 /// Can be multiplied to `[0, 1]` [`f32`] coefficient, which affects every channel besides alpha:
 /// ```
 /// # use linfb::shape::Color;
@@ -54,7 +56,7 @@ impl Mul<f32> for Color {
             red: (self.red as f32 * coeff) as u8,
             green: (self.green as f32 * coeff) as u8,
             blue: (self.blue as f32 * coeff) as u8,
-            alpha: self.alpha
+            alpha: self.alpha,
         }
     }
 }
@@ -82,13 +84,22 @@ impl Color {
     /// ```
     pub fn hex(color_string: &str) -> Result<Self> {
         if color_string.len() != 7 && color_string.len() != 9 {
-            return Err(InvalidColorString(color_string.into(), "length must be 7 or 9"));
+            return Err(InvalidColorString(
+                color_string.into(),
+                "length must be 7 or 9",
+            ));
         }
         if color_string.chars().next() != Some('#') {
-            return Err(InvalidColorString(color_string.into(), "first char must be #"));
+            return Err(InvalidColorString(
+                color_string.into(),
+                "first char must be #",
+            ));
         }
         if !color_string.chars().skip(1).all(|c| c.is_ascii_hexdigit()) {
-            return Err(InvalidColorString(color_string.into(), "all characters but first must be hex"));
+            return Err(InvalidColorString(
+                color_string.into(),
+                "all characters but first must be hex",
+            ));
         }
 
         // We can .unwrap() here, because checked that everything is hexdigits
@@ -100,20 +111,30 @@ impl Color {
                 u8::from_str_radix(&color_string[7..9], 16).unwrap()
             } else {
                 255
-            }
+            },
         })
     }
 }
 
 impl From<(u8, u8, u8)> for Color {
     fn from(rgb: (u8, u8, u8)) -> Self {
-        Self { red: rgb.0, green: rgb.1, blue: rgb.2, alpha: 255 }
+        Self {
+            red: rgb.0,
+            green: rgb.1,
+            blue: rgb.2,
+            alpha: 255,
+        }
     }
 }
 
 impl From<(u8, u8, u8, u8)> for Color {
     fn from(rgba: (u8, u8, u8, u8)) -> Self {
-        Self { red: rgba.0, green: rgba.1, blue: rgba.2, alpha: rgba.3 }
+        Self {
+            red: rgba.0,
+            green: rgba.1,
+            blue: rgba.2,
+            alpha: rgba.3,
+        }
     }
 }
 
@@ -135,12 +156,17 @@ pub trait Shape: Downcast {
     /// Convert self into [`PositionedShape`], saving position info. Needed for
     /// [`Compositor`](super::Compositor).
     fn at(self, x: usize, y: usize) -> PositionedShape
-    where Self: Sized + 'static {
-        PositionedShape { x, y, shape: Box::new(self) }
+    where
+        Self: Sized + 'static,
+    {
+        PositionedShape {
+            x,
+            y,
+            shape: Box::new(self),
+        }
     }
 }
 impl_downcast!(Shape);
-
 
 /// [`Shape`], positioned for placing onto [`Compositor`](super::Compositor)
 pub struct PositionedShape {
@@ -149,11 +175,14 @@ pub struct PositionedShape {
     pub shape: Box<dyn Shape + 'static>,
 }
 
-
 impl PositionedShape {
     /// Create [`PositionedShape`] from [`Shape`], consuming latter
     pub fn new<T: Shape + 'static>(x: usize, y: usize, shape: T) -> Self {
-        Self { x, y, shape: Box::new(shape) }
+        Self {
+            x,
+            y,
+            shape: Box::new(shape),
+        }
     }
 
     /// Get shared reference to inner [`Shape`] if it's type matches `T`
@@ -166,7 +195,6 @@ impl PositionedShape {
         self.shape.downcast_mut()
     }
 }
-
 
 /// Simplest of all shapes, just a rectangle
 #[derive(Debug, Builder)]
@@ -214,4 +242,3 @@ impl Shape for Rectangle {
             .collect()
     }
 }
-
